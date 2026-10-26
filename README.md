@@ -1,0 +1,135 @@
+# CLIP spatial-spectral anomaly detection
+
+Compose DAPO's existing blocks with optional new modules. Develop locally; install
+dependencies, run numerical tests, train and evaluate on the server.
+
+## Structure
+
+```text
+DAPO/                       unchanged upstream reference, commit 290411d
+clip_ad/
+  model.py                  composed model, factory and block checkpoint interface
+  blocks/spectral.py        image windows → radial FFT → MLP → gated residual
+  readout.py                shared image/text and dense patch/text similarity
+  losses.py                 independent objectives and weighted composition
+  data.py                   reuse DAPO's metadata dataset
+  train.py                  server training
+  evaluate.py               server binary evaluation
+configs/
+  baseline.json             DAPO blocks and original loss weights
+  spectral.json             same experiment with spectral fusion enabled
+tests/                      synthetic component and composition checks
+```
+
+The model reuses `DAPO.adapter.LinearAdapter`, `LearnablePrompt`,
+`VisualPromptTuning`, and DAPO's vendored OpenCLIP. Losses reuse `FocalLoss` and
+`BinaryDiceLoss`. Upstream source files are not edited or copied. DAPO/OpenCLIP
+imports are selected explicitly in `clip_ad/vendor.py`; do not import another
+installed `open_clip` package first.
+
+```text
+image + visual prompts → frozen CLIP → patch adapters ──────────────┐
+image → patch-aligned windows → radial FFT → spectral MLP ──────────┤
+                                                   optional fusion
+candidate names → learned prompts → frozen CLIP text → text anchors
+                                     ↓
+            shared similarity readout → per-layer maps + CLS logits
+                                     ↓ training only
+         independent segmentation and classification objectives
+```
+
+## Server workflow
+
+Transfer the complete project, including `DAPO/`, to the server. Use the same
+working environment and dataset preparation as your successful DAPO reproduction.
+All commands below run from this project's root, not from `DAPO/`.
+
+```bash
+python -m unittest discover -s tests -v
+
+# Evaluate your existing DAPO weights through the composed spatial model.
+python -m clip_ad.evaluate --checkpoint /checkpoints/dapo/epoch_4.pth \
+  --config configs/baseline.json --dataset visa --data-root /datasets/visa \
+  --output runs/baseline/visa.json
+
+# Verify the composed spatial baseline first.
+python -m clip_ad.train --config configs/baseline.json \
+  --data-root /datasets/mvtec --output runs/baseline
+
+# First spectral smoke test; use a new directory for the full run.
+python -m clip_ad.train --config configs/spectral.json \
+  --data-root /datasets/mvtec --output runs/spectral_smoke --epochs 1
+
+python -m clip_ad.train --config configs/spectral.json \
+  --data-root /datasets/mvtec --output runs/spectral
+
+python -m clip_ad.evaluate --checkpoint runs/spectral/epoch_4.pth \
+  --dataset visa --data-root /datasets/visa --output runs/spectral/visa.json
+```
+
+The source MVTec experiment intentionally uses DAPO's `meta.json` **test** partition
+for supervised source training, as upstream does. The held-out target dataset must
+be separate. The provided prompt vocabulary, alias-to-channel mapping, loss weights,
+Adam settings and seeds are taken from upstream training. Review the JSON configs
+if your reproduced experiment used different settings. Mask preprocessing preserves
+upstream training's integer conversion before thresholding, including its treatment
+of fractional mask boundary values.
+
+To compare against existing DAPO weights without retraining, pass
+`--init-dapo /path/to/epoch_4.pth` to training. With `--epochs 1`, this performs
+one additional training epoch; it is initialization, not resume. To evaluate an
+original checkpoint without training, use the evaluation command above with
+`--config configs/baseline.json`. Architecture
+and prompt settings must match the original run. No extra optimizer parameters are
+added to the baseline objective; CLIP weights are explicitly frozen while gradients
+flow through the encoders to learned prompts.
+
+Resume a new-format run with `--resume runs/spectral/epoch_0.pth`, the same config,
+and a total `--epochs` greater than the saved epoch. Checkpoints save learned blocks,
+configuration, vocabulary, optimizer, epoch and RNG states. Frozen CLIP weights
+are reconstructed from `model.pretrained`; they are not duplicated in checkpoints.
+For offline servers, provide a locally cached or local-path pretrained checkpoint.
+
+## Adding blocks and objectives
+
+`SpatialSpectralCLIP` owns feature extraction and prediction and receives no GT.
+`fusion=None` gives the spatial baseline. The optional `SpectralFusion` receives
+already-adapted patch features and the preprocessed image. It does not subclass
+or modify DAPO's adapter. Gates start at zero, preserving the corresponding
+spatial model's initial predictions. The spectral encoder starts receiving
+gradients once the gates move away from zero.
+
+`LossComposer` accepts named `nn.Module` objectives and matching weights. Each
+objective implements `forward(outputs, targets)`. Existing defaults reproduce
+`4 × sum_layers(Focal + Dice_normal + Dice_anomaly) + CE_image`. Add region losses
+as independent objectives consuming `patch_embeddings` and `text_embeddings`.
+No region loss or query decoder is enabled in this first experiment.
+
+New checkpoints keep visual prompts, text prompts, spatial adapters and spectral
+fusion as separate blocks. Inference reconstructs the same model from saved config.
+Use `--defect-names /path/to/names.json` during evaluation for a JSON list of unseen
+candidate names; channel zero is always normal and the rest follow that list.
+Template tensors are rebuilt for the new names while learned context tokens transfer.
+
+## Evaluation and validation limits
+
+The supplied evaluation entry point reports per-product and macro image/pixel
+AUROC and AP. Classes lacking both labels have null metrics. It uses mean per-layer
+binary similarity probabilities for localization and binary CLS logits for image
+scores. It does not reproduce all upstream reporting or multi-type metrics;
+the model also exposes dense `type_probabilities` for a typed evaluator. Compare
+both baseline and spectral models through this same evaluator. Changing the
+candidate vocabulary changes the averaged abnormal text anchor, so hold it fixed
+when comparing experiments.
+
+The spectral path uses grayscale, mean-centered Hann windows, float32 FFT log
+magnitudes, radial averaging and a shared MLP. Windows align to the square patch
+grid with replicated boundaries; defaults are 28-pixel windows, stride 14 and
+16 bins at image size 518. Image dimensions must be divisible by the patch grid;
+window size must be at least patch size. A parity mismatch shifts centers by half
+a pixel. Standard OpenAI CLIP image normalization is assumed. Radial descriptors
+discard phase and orientation. The CLS path is unchanged, although joint training
+can indirectly affect its learned prompts.
+
+Local validation covers syntax and source integration only: PyTorch is not installed
+locally. Numerical tests and end-to-end baseline equivalence must run on the server.
