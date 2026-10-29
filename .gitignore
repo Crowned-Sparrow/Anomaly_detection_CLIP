@@ -6,4 +6,4 @@ logs/
 checkpoints/
 *.pth
 *.pt
-.pdf
+*.pdf
