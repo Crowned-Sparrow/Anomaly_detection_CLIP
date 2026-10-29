@@ -40,6 +40,57 @@ candidate names → learned prompts → frozen CLIP text → text anchors
 
 ## Server workflow
 
+### SLURM cluster launcher
+
+[`scripts/run_cluster.sh`](scripts/run_cluster.sh) follows the supplied
+`20260923_Cluster_User_Guide.pdf`. Connect to NetBird and SSH to the login node
+first. Transfer the complete repository including `DAPO/`, then use an existing
+Conda environment with the project dependencies installed. The guide recommends
+Conda packages first, then conda-forge, with pip only as a fallback.
+
+```bash
+# On the login node, select your prepared environment.
+export CLUSTER_CONDA_ENV=my_dapo_env
+
+# Preview submission without scheduling a job.
+bash scripts/run_cluster.sh --dry-run train --data-root /home/$USER/datasets/mvtec --epochs 1
+
+# Run numerical tests, then submit a spectral smoke test.
+bash scripts/run_cluster.sh test
+bash scripts/run_cluster.sh train --data-root /home/$USER/datasets/mvtec --epochs 1
+
+# Full baseline and spectral runs are separate jobs.
+bash scripts/run_cluster.sh train --config configs/baseline.json --data-root /home/$USER/datasets/mvtec
+bash scripts/run_cluster.sh train --data-root /home/$USER/datasets/mvtec
+
+# Once the spectral training job finishes, substitute its job ID below.
+bash scripts/run_cluster.sh evaluate --checkpoint runs/clip-ad-train-12345/epoch_4.pth \
+  --dataset visa --data-root /home/$USER/datasets/visa
+
+# Use only a partition you have permission to access; this selects a 96 GB MIG.
+CLUSTER_PARTITION=student9696 CLUSTER_MEM=32G CLUSTER_TIME=08:00:00 \
+  bash scripts/run_cluster.sh train --data-root /home/$USER/datasets/mvtec
+```
+
+The launcher defaults to `student4848`, one 48 GB MIG, 4 CPUs, 16 GB RAM,
+and one hour. Adjust the resource settings for full runs. It loads `miniconda3`
+and `cuda12.8`, then uses `source activate` inside the job. The guide states
+that CUDA 12.6 is incompatible with these GPUs; use a compatible PyTorch build
+in your environment as well. The launcher preserves SLURM's GPU visibility.
+Run `bash scripts/run_cluster.sh --help` for all resource overrides.
+
+Logs appear in `logs/clip-ad-<mode>-<job-id>.out` and `.err`. Outputs default to
+`runs/clip-ad-<mode>-<job-id>`; evaluation writes `evaluation.json` there.
+Pass `--output` to choose another location. Use `squeue -u "$USER"` to monitor,
+`tail -f logs/clip-ad-train-12345.out` to follow training, and `scancel 12345`
+to cancel a job. Training and tests run on compute nodes through `srun`.
+Datasets can remain under `/home`; `/compute_home` is optional shared scratch
+for write-intensive work and requires cleanup after use. No data is copied by
+the launcher. Prepare model weights in advance if compute nodes lack internet
+access, as described below.
+
+### Direct commands inside a compute allocation
+
 Transfer the complete project, including `DAPO/`, to the server. Use the same
 working environment and dataset preparation as your successful DAPO reproduction.
 All commands below run from this project's root, not from `DAPO/`.
