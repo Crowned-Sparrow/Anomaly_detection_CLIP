@@ -20,7 +20,7 @@ Environment overrides:
   CLUSTER_CPUS       CPUs per task (default: 4)
   CLUSTER_MEM        Job RAM (default: 16G)
   CLUSTER_TIME       Wall time (default: 01:00:00)
-  CLUSTER_CUDA_MODULE CUDA module (default: cuda12.8)
+  CLUSTER_CUDA_MODULE CUDA module (default: cuda/13.0)
 
 Training defaults to configs/spectral.json. Training/evaluation outputs default
 to runs/<job-name>-<job-id>[/evaluation.json]. Explicit Python arguments override
@@ -78,7 +78,7 @@ if ! type module >/dev/null 2>&1 && [[ -r /etc/profile.d/lmod.sh ]]; then
 fi
 type module >/dev/null 2>&1 || { echo 'Lmod module command is unavailable.' >&2; exit 1; }
 module load miniconda3
-module load "${CLUSTER_CUDA_MODULE:-cuda12.8}"
+module load "${CLUSTER_CUDA_MODULE:-cuda/13.0}"
 # The cluster guide requires source activate for non-interactive shells.
 # Conda activation scripts may reference unset variables.
 set +u
@@ -98,4 +98,6 @@ printf 'Job %s on %s; Conda environment: %s\n' "$SLURM_JOB_ID" "${SLURM_NODELIST
 printf 'Running: '
 printf '%q ' "${command_args[@]}"
 printf '\n'
-exec srun "${command_args[@]}"
+# sbatch already placed this single-task batch script on the allocated node.
+# Run directly, as in the guide's batch example; srun may be absent here.
+exec "${command_args[@]}"

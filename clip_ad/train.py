@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from .data import build_dataset
-from .losses import LossComposer, typed_targets
+from .losses import build_loss_composer, typed_targets
 from .model import ModelConfig, build_model, checkpoint_payload
 
 
@@ -39,7 +39,7 @@ def main():
     config = ModelConfig(**experiment['model'])
     model, preprocess = build_model(config, experiment['defect_names'], args.device)
     optimizer = torch.optim.Adam(model.trainable_parameters(), lr=experiment['learning_rate'], betas=(0.5, 0.999))
-    criterion = LossComposer(weights=experiment['loss_weights']).to(args.device)
+    criterion = build_loss_composer(experiment).to(args.device)
     start = 0
     if args.init_dapo:
         model.load_dapo_checkpoint(torch.load(args.init_dapo, map_location='cpu', weights_only=False))

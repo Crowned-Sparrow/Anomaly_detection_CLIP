@@ -5,6 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from DAPO.loss import FocalLoss, BinaryDiceLoss
+from .blocks.region_pooling import MaskedRegionPooling
 
 
 class DenseSegmentationLoss(nn.Module):
@@ -30,6 +31,52 @@ class DenseSegmentationLoss(nn.Module):
 class ImageClassificationLoss(nn.Module):
     def forward(self, outputs, targets):
         return F.cross_entropy(outputs['image_logits'], targets['anomaly'].long())
+
+
+class RegionTextAlignmentLoss(nn.Module):
+    """Cosine-softmax classification of defect regions against all text anchors.
+
+    Mean over regions, then feature layers. Normal images contribute no regions;
+    normal text remains a negative candidate. This is not a query decoder or an
+    implementation of UniSpector's angular-margin objective.
+    """
+    def __init__(self, temperature=0.07):
+        super().__init__()
+        if not 0 < temperature < float('inf'):
+            raise ValueError('Region temperature must be finite and positive')
+        self.temperature = temperature
+        self.pool = MaskedRegionPooling()
+
+    def forward(self, outputs, targets):
+        text = F.normalize(outputs['text_embeddings'].float(), dim=-1)
+        patches = outputs['patch_embeddings']
+        if not patches:
+            raise ValueError('Region alignment requires at least one feature layer')
+        losses = []
+        for layer in patches:
+            regions, _, labels = self.pool(layer.float(), targets['type_mask'])
+            if not labels.numel():
+                losses.append(layer.sum() * 0 + text.sum() * 0)
+                continue
+            if labels.max().item() >= text.shape[0]:
+                raise ValueError('Region type IDs must index text anchors')
+            logits = F.normalize(regions, dim=-1) @ text.T / self.temperature
+            losses.append(F.cross_entropy(logits, labels))
+        return torch.stack(losses).mean()
+
+
+def build_loss_composer(experiment):
+    """Enable the optional objective only when its configured weight is nonzero."""
+    weights = dict(experiment['loss_weights'])
+    objectives = {'segmentation': DenseSegmentationLoss(), 'classification': ImageClassificationLoss()}
+    region_weight = weights.pop('region_alignment', 0.0)
+    if not 0 <= region_weight < float('inf'):
+        raise ValueError('Region alignment weight must be finite and nonnegative')
+    if region_weight:
+        objectives['region_alignment'] = RegionTextAlignmentLoss(
+            **experiment.get('region_alignment', {}))
+        weights['region_alignment'] = region_weight
+    return LossComposer(objectives=objectives, weights=weights)
 
 
 class LossComposer(nn.Module):

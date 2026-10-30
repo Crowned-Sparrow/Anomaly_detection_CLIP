@@ -10,6 +10,7 @@ DAPO/                       unchanged upstream reference, commit 290411d
 clip_ad/
   model.py                  composed model, factory and block checkpoint interface
   blocks/spectral.py        image windows → radial FFT → MLP → gated residual
+  blocks/region_pooling.py   training-only GT-masked pooling of patch embeddings
   readout.py                shared image/text and dense patch/text similarity
   losses.py                 independent objectives and weighted composition
   data.py                   reuse DAPO's metadata dataset
@@ -18,6 +19,7 @@ clip_ad/
 configs/
   baseline.json             DAPO blocks and original loss weights
   spectral.json             same experiment with spectral fusion enabled
+  spectral_region.json      spectral fusion + optional region–text alignment loss
 tests/                      synthetic component and composition checks
 ```
 
@@ -74,7 +76,7 @@ CLUSTER_PARTITION=student9696 CLUSTER_MEM=32G CLUSTER_TIME=08:00:00 \
 
 The launcher defaults to `student4848`, one 48 GB MIG, 4 CPUs, 16 GB RAM,
 and one hour. Adjust the resource settings for full runs. It loads `miniconda3`
-and `cuda12.8`, then uses `source activate` inside the job. The guide states
+and `cuda/13.0`, then uses `source activate` inside the job. The guide states
 that CUDA 12.6 is incompatible with these GPUs; use a compatible PyTorch build
 in your environment as well. The launcher preserves SLURM's GPU visibility.
 Run `bash scripts/run_cluster.sh --help` for all resource overrides.
@@ -83,7 +85,7 @@ Logs appear in `logs/clip-ad-<mode>-<job-id>.out` and `.err`. Outputs default to
 `runs/clip-ad-<mode>-<job-id>`; evaluation writes `evaluation.json` there.
 Pass `--output` to choose another location. Use `squeue -u "$USER"` to monitor,
 `tail -f logs/clip-ad-train-12345.out` to follow training, and `scancel 12345`
-to cancel a job. Training and tests run on compute nodes through `srun`.
+to cancel a job. Training and tests run directly inside the compute-node batch allocation.
 Datasets can remain under `/home`; `/compute_home` is optional shared scratch
 for write-intensive work and requires cleanup after use. No data is copied by
 the launcher. Prepare model weights in advance if compute nodes lack internet
@@ -154,7 +156,34 @@ gradients once the gates move away from zero.
 objective implements `forward(outputs, targets)`. Existing defaults reproduce
 `4 × sum_layers(Focal + Dice_normal + Dice_anomaly) + CE_image`. Add region losses
 as independent objectives consuming `patch_embeddings` and `text_embeddings`.
-No region loss or query decoder is enabled in this first experiment.
+The baseline and spectral configurations leave region alignment disabled.
+`configs/spectral_region.json` enables it with weight 0.1 and temperature 0.07;
+these are initial experiment settings, not validated optimal values.
+
+`MaskedRegionPooling` uses area coverage of source GT masks at the patch grid.
+It pools one feature per image and positive defect type, combining disconnected
+parts of the same type. Background regions are excluded, and small defects retain
+fractional coverage. `RegionTextAlignmentLoss` normalizes each pooled feature and
+uses cosine-softmax cross-entropy against all text anchors, including normal as
+a negative candidate. It averages over regions and then feature layers. Empty
+defect batches contribute a differentiable zero. Gradients reach patch features
+and learned text prompts; GT masks never enter inference. No additional learned
+parameters or checkpoint blocks are introduced. This objective does not implement
+UniSpector's angular-margin loss, and no query decoder is enabled.
+
+After the existing baseline and spectral checks, submit the additional experiment:
+
+```bash
+bash scripts/run_cluster.sh test
+bash scripts/run_cluster.sh train --config configs/spectral_region.json \
+  --data-root /path/to/mvtec --epochs 1
+```
+
+Use the same held-out dataset and vocabulary when comparing all three configs.
+The epoch metrics include `region_alignment` for enabled runs. Omit its weight
+or set it to zero to skip the new objective completely. Start the region experiment
+as a separate run: `--resume` requires an identical experiment configuration and
+cannot enable a new loss.
 
 New checkpoints keep visual prompts, text prompts, spatial adapters and spectral
 fusion as separate blocks. Inference reconstructs the same model from saved config.

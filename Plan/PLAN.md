@@ -51,8 +51,8 @@
 
 | Tên block | Vị trí |
 |---|---|
-| Local windows → radial spectrum | Chưa có; cần triển khai |
-| Spatial–spectral fusion cho CLIP patch tokens | Chưa có; điểm nối sau `LinearAdapter`, trước similarity trong `train.py` |
-| GT-masked region pooling | Chưa có; dùng patch features và mask nguồn trong `Trainer.train_epoch()` |
-| Region contrastive loss / region–text alignment | Chưa có; thêm định nghĩa loss và tích hợp vào `total_loss` |
+| Local windows → radial spectrum | `clip_ad/blocks/spectral.py` — đã triển khai; cần xác nhận số học trên server |
+| Spatial–spectral fusion cho CLIP patch tokens | `clip_ad/blocks/spectral.py` — nối sau `LinearAdapter`, trước readout |
+| GT-masked region pooling | `clip_ad/blocks/region_pooling.py` — pooling theo ảnh và defect type, chỉ dùng khi train |
+| Region contrastive loss / region–text alignment | `clip_ad/losses.py` — cosine-softmax CE; bật qua `configs/spectral_region.json`, cần chạy test trên server; không phải angular-margin loss của paper |
 | Text-guided PQS | Chưa có; cần thiết kế cùng query-based mask decoder |

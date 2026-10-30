@@ -10,7 +10,7 @@ from torch.nn import functional as F
 from DAPO.adapter import LinearAdapter
 from DAPO.loss import FocalLoss, BinaryDiceLoss
 from clip_ad.blocks.spectral import SpectralFusion
-from clip_ad.losses import LossComposer, typed_targets
+from clip_ad.losses import LossComposer, build_loss_composer, typed_targets
 from clip_ad.model import SpatialSpectralCLIP
 
 
@@ -99,6 +99,20 @@ class ModelLossTests(unittest.TestCase):
         torch.testing.assert_close(actual['segmentation'], local)
         torch.testing.assert_close(actual['classification'], image)
         torch.testing.assert_close(actual['total'], 4 * local + image)
+
+    def test_region_objective_integrates_with_composed_model(self):
+        model = small_model(True)
+        criterion = build_loss_composer({'loss_weights': {
+            'segmentation': 4., 'classification': 1., 'region_alignment': 0.1}})
+        values = criterion(model(self.image), self.targets)
+        torch.testing.assert_close(values['total'], 4 * values['segmentation']
+                                   + values['classification'] + 0.1 * values['region_alignment'])
+        values['total'].backward()
+        self.assertIsNone(model.backbone.weight.grad)
+        for parameter in (model.text_prompt.anchors, model.spatial_adapter.fc[0].weight,
+                          model.fusion.gates):
+            self.assertTrue(torch.isfinite(parameter.grad).all())
+            self.assertGreater(parameter.grad.abs().sum().item(), 0)
 
     def test_original_checkpoint_import_and_modular_roundtrip(self):
         baseline, spectral = small_model(), small_model(True)
