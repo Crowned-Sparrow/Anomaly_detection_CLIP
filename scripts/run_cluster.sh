@@ -15,8 +15,8 @@ Examples (run on the cluster login node):
 
 Environment overrides:
   CLUSTER_CONDA_ENV  Existing Conda environment name or path (default: clip-ad)
-  CLUSTER_PARTITION  Your permitted partition (default: qos9696)
-  CLUSTER_GPU_GRES   Full SLURM GRES (default: one 96 GB MIG on qos9696)
+  CLUSTER_PARTITION  Your permitted partition (default: student9696)
+  CLUSTER_GPU_GRES   Full SLURM GRES (default: one 96 GB MIG on student9696)
   CLUSTER_CPUS       CPUs per task (default: 4)
   CLUSTER_MEM        Job RAM (default: 16G)
   CLUSTER_TIME       Wall time (default: 01:00:00)
@@ -44,9 +44,9 @@ esac
 if ! "$batch"; then
     project_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
     export CLIP_AD_PROJECT_ROOT="$project_root"
-    partition=${CLUSTER_PARTITION:-qos9696}
+    partition=${CLUSTER_PARTITION:-student9696}
     case "$partition" in
-        qos9696|student9696) default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_4g.96gb:1 ;;
+        student9696) default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_4g.96gb:1 ;;
         *) default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_2g.48gb:1 ;;
     esac
     submission=(sbatch --export=ALL --chdir="$project_root"
