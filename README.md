@@ -74,7 +74,7 @@ CLUSTER_PARTITION=student9696 CLUSTER_MEM=32G CLUSTER_TIME=08:00:00 \
   bash scripts/run_cluster.sh train --data-root /home/$USER/datasets/mvtec
 ```
 
-The launcher defaults to partition `student9696`, QoS `pos9696`, one 96 GB MIG, 4 CPUs, 16 GB RAM,
+The launcher defaults to partition `student9696`, QoS `qos9696`, one 96 GB MIG, 4 CPUs, 16 GB RAM,
 and one hour. Adjust the resource settings for full runs. It loads `miniconda3`
 and `cuda/13.0`, then uses `source activate` inside the job. The guide states
 that CUDA 12.6 is incompatible with these GPUs; use a compatible PyTorch build

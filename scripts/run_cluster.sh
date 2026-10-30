@@ -16,7 +16,7 @@ Examples (run on the cluster login node):
 Environment overrides:
   CLUSTER_CONDA_ENV  Existing Conda environment name or path (default: clip-ad)
   CLUSTER_PARTITION  Your permitted partition (default: student9696)
-  CLUSTER_QOS        QoS (default: pos9696 on student9696; empty to use account default)
+  CLUSTER_QOS        QoS (default: qos9696 on student9696; empty to use account default)
   CLUSTER_GPU_GRES   Full SLURM GRES (default: one 96 GB MIG on student9696)
   CLUSTER_CPUS       CPUs per task (default: 4)
   CLUSTER_MEM        Job RAM (default: 16G)
@@ -50,7 +50,7 @@ if ! "$batch"; then
     case "$partition" in
         student9696)
             default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_4g.96gb:1
-            default_qos=pos9696
+            default_qos=qos9696
             ;;
         *) default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_2g.48gb:1 ;;
     esac
