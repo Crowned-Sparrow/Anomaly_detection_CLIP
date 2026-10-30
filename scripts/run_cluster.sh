@@ -16,6 +16,7 @@ Examples (run on the cluster login node):
 Environment overrides:
   CLUSTER_CONDA_ENV  Existing Conda environment name or path (default: clip-ad)
   CLUSTER_PARTITION  Your permitted partition (default: student9696)
+  CLUSTER_QOS        QoS (default: pos9696 on student9696; empty to use account default)
   CLUSTER_GPU_GRES   Full SLURM GRES (default: one 96 GB MIG on student9696)
   CLUSTER_CPUS       CPUs per task (default: 4)
   CLUSTER_MEM        Job RAM (default: 16G)
@@ -45,8 +46,12 @@ if ! "$batch"; then
     project_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
     export CLIP_AD_PROJECT_ROOT="$project_root"
     partition=${CLUSTER_PARTITION:-student9696}
+    default_qos=
     case "$partition" in
-        student9696) default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_4g.96gb:1 ;;
+        student9696)
+            default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_4g.96gb:1
+            default_qos=pos9696
+            ;;
         *) default_gres=gpu:nvidia_rtx_pro_6000_blackwell_server_edition_2g.48gb:1 ;;
     esac
     submission=(sbatch --export=ALL --chdir="$project_root"
@@ -55,8 +60,12 @@ if ! "$batch"; then
         --mem="${CLUSTER_MEM:-16G}" --time="${CLUSTER_TIME:-01:00:00}"
         --gres="${CLUSTER_GPU_GRES:-$default_gres}"
         --output="$project_root/logs/%x-%j.out"
-        --error="$project_root/logs/%x-%j.err"
-        "$project_root/scripts/run_cluster.sh" --batch "$mode" "$@")
+        --error="$project_root/logs/%x-%j.err")
+    qos=${CLUSTER_QOS-$default_qos}
+    if [[ -n $qos ]]; then
+        submission+=(--qos="$qos")
+    fi
+    submission+=("$project_root/scripts/run_cluster.sh" --batch "$mode" "$@")
     if "$dry_run"; then
         printf '%q ' "${submission[@]}"
         printf '\n'

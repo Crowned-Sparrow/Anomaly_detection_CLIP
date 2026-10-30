@@ -74,12 +74,15 @@ CLUSTER_PARTITION=student9696 CLUSTER_MEM=32G CLUSTER_TIME=08:00:00 \
   bash scripts/run_cluster.sh train --data-root /home/$USER/datasets/mvtec
 ```
 
-The launcher defaults to `student9696`, one 96 GB MIG, 4 CPUs, 16 GB RAM,
+The launcher defaults to partition `student9696`, QoS `pos9696`, one 96 GB MIG, 4 CPUs, 16 GB RAM,
 and one hour. Adjust the resource settings for full runs. It loads `miniconda3`
 and `cuda/13.0`, then uses `source activate` inside the job. The guide states
 that CUDA 12.6 is incompatible with these GPUs; use a compatible PyTorch build
 in your environment as well. The launcher preserves SLURM's GPU visibility.
 Run `bash scripts/run_cluster.sh --help` for all resource overrides.
+If your account's default QoS is rejected by the partition, set `CLUSTER_QOS`
+to the exact QoS name allowed for your account and that partition. The launcher
+passes it as `sbatch --qos`; partition and QoS are separate settings.
 
 Logs appear in `logs/clip-ad-<mode>-<job-id>.out` and `.err`. Outputs default to
 `runs/clip-ad-<mode>-<job-id>`; evaluation writes `evaluation.json` there.
