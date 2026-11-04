@@ -203,7 +203,19 @@ Template tensors are rebuilt for the new names while learned context tokens tran
 ## Evaluation and validation limits
 
 The supplied evaluation entry point reports per-product and macro image/pixel
-AUROC and AP. Classes lacking both labels have null metrics. It uses mean per-layer
+AUROC, AP, and `f1_max`, plus pixel `aupro`. F1-max is the best positive-class
+F1 over score thresholds on each evaluated category, not F1 at a threshold
+selected using independent validation data. Pixel F1 is binary anomaly F1,
+not macro F1 across individual defect types. AUPRO follows DAPO's implementation:
+200 uniformly spaced thresholds, equally weighted connected components,
+FPR strictly below 0.3, and normalization by the retained FPR range. This sampled
+normalization differs from integrating an interpolated curve exactly to 0.3.
+Constant maps or sampled curves without a nonzero retained FPR range have null
+AUPRO. Classes lacking both labels have null binary metrics. Macro scores
+average the defined category values for each metric. Scores are in [0, 1].
+Re-evaluate existing checkpoints to obtain the additional metrics; previous
+JSON reports contain no predictions from which to recover them.
+It uses mean per-layer
 binary similarity probabilities for localization and binary CLS logits for image
 scores. It does not reproduce all upstream reporting or multi-type metrics;
 the model also exposes dense `type_probabilities` for a typed evaluator. Compare

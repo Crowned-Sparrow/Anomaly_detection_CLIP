@@ -4,14 +4,13 @@ import argparse
 import json
 from pathlib import Path
 
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from sklearn.metrics import average_precision_score, roc_auc_score
 from tqdm import tqdm
 
 from .data import DATASET_NAMES, build_dataset, validate_dataset
 from .model import ModelConfig, build_model
+from .metrics import summarize_records
 
 
 def main():
@@ -55,22 +54,7 @@ def main():
             record['scores'].append(outputs['image_logits'].softmax(-1)[0, 1].item())
             record['masks'].append((batch['mask'][0, 0] > 0.5).numpy())
             record['maps'].append(outputs['binary_probabilities'][0, 1].cpu().numpy())
-    metrics = {}
-    for name, record in records.items():
-        def pair(truth, scores):
-            truth, scores = np.asarray(truth).ravel(), np.asarray(scores).ravel()
-            if np.unique(truth).size < 2:
-                return {'auroc': None, 'ap': None}
-            return {'auroc': float(roc_auc_score(truth, scores)), 'ap': float(average_precision_score(truth, scores))}
-        metrics[name] = {'image': pair(record['labels'], record['scores']), 'pixel': pair(record['masks'], record['maps'])}
-    if not metrics:
-        raise ValueError('Evaluation dataset is empty')
-    macro = {}
-    for level in ('image', 'pixel'):
-        macro[level] = {}
-        for metric in ('auroc', 'ap'):
-            values = [result[level][metric] for result in metrics.values() if result[level][metric] is not None]
-            macro[level][metric] = float(np.mean(values)) if values else None
+    metrics, macro = summarize_records(records)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(dict(dataset=args.dataset, defect_names=names, classes=metrics, macro=macro), indent=2) + '\n')
