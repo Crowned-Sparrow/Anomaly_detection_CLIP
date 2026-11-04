@@ -94,6 +94,12 @@ for write-intensive work and requires cleanup after use. No data is copied by
 the launcher. Prepare model weights in advance if compute nodes lack internet
 access, as described below.
 
+`--dataset` identifies the data: use `mpdd` for an MPDD root and `visa` for a
+VisA root. Put experiment labels such as `baseline-visa-4` in `--output`.
+The dataset wrapper accepts both `{"test": {"class_name": [samples]}}` metadata
+and the flat `{"class_name": [samples]}` layout used by upstream VisA. Other
+partitions are never automatically substituted for `test`.
+
 ### Direct commands inside a compute allocation
 
 Transfer the complete project, including `DAPO/`, to the server. Use the same

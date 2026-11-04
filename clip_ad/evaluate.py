@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import average_precision_score, roc_auc_score
 from tqdm import tqdm
 
-from .data import build_dataset
+from .data import DATASET_NAMES, build_dataset, validate_dataset
 from .model import ModelConfig, build_model
 
 
@@ -19,12 +19,13 @@ def main():
     parser.add_argument('--checkpoint', required=True)
     parser.add_argument('--config', help='Experiment JSON required when loading an original DAPO checkpoint')
     parser.add_argument('--data-root', required=True)
-    parser.add_argument('--dataset', required=True)
+    parser.add_argument('--dataset', required=True, choices=DATASET_NAMES)
     parser.add_argument('--output', required=True)
     parser.add_argument('--defect-names', help='JSON list of candidate defect names; default: training names')
     parser.add_argument('--device', default='cuda')
     parser.add_argument('--workers', type=int, default=0)
     args = parser.parse_args()
+    validate_dataset(args.data_root, args.dataset)
     saved = torch.load(args.checkpoint, map_location='cpu', weights_only=False)
     if 'blocks' in saved:
         config = ModelConfig(**saved['model_config'])

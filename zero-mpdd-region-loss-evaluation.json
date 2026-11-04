@@ -1,0 +1,97 @@
+{
+    "dataset": "mpdd",
+    "defect_names": [
+        "bent",
+        "broken",
+        "discoloration",
+        "compound",
+        "contamination",
+        "crack",
+        "cut",
+        "fabric",
+        "faulty imprint",
+        "gluing",
+        "hole",
+        "missing",
+        "puncture",
+        "rough",
+        "scratch",
+        "compressed",
+        "threading",
+        "liquid",
+        "misaligned",
+        "wear"
+    ],
+    "classes": {
+        "bracket_black": {
+            "image": {
+                "auroc": 0.4787234042553191,
+                "ap": 0.5659496876002412
+            },
+            "pixel": {
+                "auroc": 0.9215275024931158,
+                "ap": 0.008065468942597272
+            }
+        },
+        "bracket_brown": {
+            "image": {
+                "auroc": 0.4434389140271492,
+                "ap": 0.6833141286609401
+            },
+            "pixel": {
+                "auroc": 0.8583740731268181,
+                "ap": 0.01721511753714502
+            }
+        },
+        "bracket_white": {
+            "image": {
+                "auroc": 0.5855555555555556,
+                "ap": 0.5412124043565
+            },
+            "pixel": {
+                "auroc": 0.8973787039700934,
+                "ap": 0.0017709063875204106
+            }
+        },
+        "connector": {
+            "image": {
+                "auroc": 0.5785714285714285,
+                "ap": 0.4328100225135012
+            },
+            "pixel": {
+                "auroc": 0.9208129093715185,
+                "ap": 0.2007723679527994
+            }
+        },
+        "metal_plate": {
+            "image": {
+                "auroc": 0.5265438786565546,
+                "ap": 0.8016539917422629
+            },
+            "pixel": {
+                "auroc": 0.9320039506525754,
+                "ap": 0.569625118624188
+            }
+        },
+        "tubes": {
+            "image": {
+                "auroc": 0.9365942028985508,
+                "ap": 0.9744716164094035
+            },
+            "pixel": {
+                "auroc": 0.9853614627059578,
+                "ap": 0.6979257598590718
+            }
+        }
+    },
+    "macro": {
+        "image": {
+            "auroc": 0.5915712306607596,
+            "ap": 0.6665686418804748
+        },
+        "pixel": {
+            "auroc": 0.9192431003866798,
+            "ap": 0.24922912321722032
+        }
+    }
+}
