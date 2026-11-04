@@ -2,7 +2,7 @@
 
 import numpy as np
 from sklearn.metrics import auc, average_precision_score, precision_recall_curve, roc_auc_score
-from skimage import measure
+from scipy import ndimage
 
 
 def binary_metrics(truth, scores):
@@ -56,9 +56,14 @@ def pixel_aupro(masks, maps, max_steps=200, fpr_limit=0.3):
     pros = np.zeros(thresholds.size, dtype=np.float64)
     count = 0
     for mask, scores in zip(masks, maps):
-        for region in measure.regionprops(measure.label(mask)):
-            region_scores = np.sort(scores[region.coords[:, 0], region.coords[:, 1]])
-            pros += 1 - np.searchsorted(region_scores, thresholds, side='right') / region.area
+        # A full 3x3 structure matches skimage.label's default 8-connectivity.
+        # Avoid importing skimage: older server wheels can have a NumPy ABI mismatch.
+        labels, _ = ndimage.label(mask, structure=np.ones((3, 3), dtype=bool))
+        for label_id, bounds in enumerate(ndimage.find_objects(labels), start=1):
+            if bounds is None:
+                continue
+            region_scores = np.sort(scores[bounds][labels[bounds] == label_id])
+            pros += 1 - np.searchsorted(region_scores, thresholds, side='right') / region_scores.size
             count += 1
     pros /= count
     fprs = (fprs - fprs.min()) / (fprs.max() - fprs.min())

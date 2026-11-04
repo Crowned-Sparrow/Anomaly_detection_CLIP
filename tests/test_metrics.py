@@ -5,7 +5,6 @@ import unittest
 import numpy as np
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-from DAPO.metrics import cal_pro_score
 from clip_ad.metrics import binary_metrics, pixel_aupro, summarize_records
 
 
@@ -25,6 +24,11 @@ class MetricTests(unittest.TestCase):
         self.assertEqual(result['ap'], average_precision_score(truth.ravel(), scores.ravel()))
 
     def test_aupro_matches_upstream_with_different_region_sizes_and_ties(self):
+        # Only the optional upstream parity check needs a working scikit-image.
+        try:
+            from DAPO.metrics import cal_pro_score
+        except (ImportError, ValueError) as exc:
+            self.skipTest(f'Upstream scikit-image unavailable: {exc}')
         masks = np.zeros((3, 16, 16), dtype=bool)
         masks[0, 0, 0] = True
         masks[0, 4:9, 4:9] = True
@@ -36,6 +40,16 @@ class MetricTests(unittest.TestCase):
             for scores in (maps, np.round(maps, 2)):
                 expected = cal_pro_score(masks, scores)
                 self.assertAlmostEqual(pixel_aupro(masks, scores), expected, places=12)
+
+    def test_regions_use_diagonal_connectivity_and_equal_weight(self):
+        masks = np.zeros((1, 16, 16), dtype=bool)
+        masks[0, 1, 1] = masks[0, 2, 2] = masks[0, 10, 10] = True
+        maps = np.linspace(0.1, 0.7, masks.size).reshape(masks.shape)
+        maps[0, 1, 1] = maps[0, 10, 10] = 0.95
+        maps[0, 2, 2] = 0.01
+        # Diagonal pair: 1/2 overlap; isolated region: 1. Mean is 3/4,
+        # rather than the 2/3 obtained from pixel weighting or 4-connectivity.
+        self.assertAlmostEqual(pixel_aupro(masks, maps), 0.75)
 
     def test_perfect_region_ranking_has_unit_aupro(self):
         masks = np.zeros((2, 16, 16), dtype=bool)

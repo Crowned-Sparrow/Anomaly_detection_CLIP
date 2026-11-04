@@ -213,6 +213,8 @@ normalization differs from integrating an interpolated curve exactly to 0.3.
 Constant maps or sampled curves without a nonzero retained FPR range have null
 AUPRO. Classes lacking both labels have null binary metrics. Macro scores
 average the defined category values for each metric. Scores are in [0, 1].
+AUPRO uses SciPy's 8-connected component labeling, matching DAPO's region
+connectivity without requiring scikit-image at evaluation time.
 Re-evaluate existing checkpoints to obtain the additional metrics; previous
 JSON reports contain no predictions from which to recover them.
 It uses mean per-layer
