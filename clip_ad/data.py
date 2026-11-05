@@ -35,8 +35,30 @@ def validate_dataset(root, dataset_name):
     return partition
 
 
+def normalize_sample(sample, class_name):
+    """Adapt upstream metadata field aliases without modifying source records."""
+    record = dict(sample)
+    if not record.get('cls_name'):
+        record['cls_name'] = record.get('product_cls') or class_name
+    if not record.get('specie_name'):
+        defect = record.get('defect_cls')
+        if defect:
+            record['specie_name'] = defect
+        elif record.get('anomaly') == 0:
+            record['specie_name'] = 'good'
+        else:
+            raise ValueError(
+                f"Metadata sample {record.get('img_path', '<unknown>')!r} is missing "
+                'a defect type: expected "specie_name" or "defect_cls". '
+                'Do not assign normal labels to anomalous samples.'
+            )
+    return record
+
+
 def build_dataset(root, dataset_name, preprocess, image_size):
     partition = validate_dataset(root, dataset_name)
+    records = [normalize_sample(sample, class_name)
+               for class_name, rows in partition.items() for sample in rows]
     from .vendor import open_clip
     open_clip()  # DAPO.dataset uses an absolute OpenCLIP import.
     from DAPO.dataset import Dataset, get_class_names
@@ -53,7 +75,7 @@ def build_dataset(root, dataset_name, preprocess, image_size):
             self.k_shot = 0
             self.class_names = list(partition)
             self.class_name = get_class_names(dataset_name)
-            self.all_data = [sample for rows in partition.values() for sample in rows]
+            self.all_data = records
             self.length = len(self.all_data)
 
     return MetadataDataset(
