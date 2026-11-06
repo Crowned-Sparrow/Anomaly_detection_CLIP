@@ -196,13 +196,18 @@ cannot enable a new loss.
 
 New checkpoints keep visual prompts, text prompts, spatial adapters and spectral
 fusion as separate blocks. Inference reconstructs the same model from saved config.
-Use `--defect-names /path/to/names.json` during evaluation for a JSON list of unseen
-candidate names; channel zero is always normal and the rest follow that list.
+Binary evaluation defaults to the target dataset's defect names from `DAPO/test.py`.
+Use `--defect-names /path/to/names.json` to override the binary names with a JSON
+list; channel zero is always normal and the rest follow that list. Multi-type
+evaluation always uses the product-specific names from `DAPO/test_multi_defect.py`.
 Template tensors are rebuilt for the new names while learned context tokens transfer.
 
 ## Evaluation and validation limits
 
-The supplied evaluation entry point reports per-product and macro image/pixel
+The evaluation entry point defaults to `--tasks both`: one dataset pass and one
+shared image/text encoder pass per image produce binary and multi-type results.
+Use `--tasks binary` or `--tasks multi-type` to evaluate only one task.
+The binary results report per-product and macro image/pixel
 AUROC, AP, and `f1_max`, plus pixel `aupro`. F1-max is the best positive-class
 F1 over score thresholds on each evaluated category, not F1 at a threshold
 selected using independent validation data. Pixel F1 is binary anomaly F1,
@@ -217,13 +222,40 @@ AUPRO uses SciPy's 8-connected component labeling, matching DAPO's region
 connectivity without requiring scikit-image at evaluation time.
 Re-evaluate existing checkpoints to obtain the additional metrics; previous
 JSON reports contain no predictions from which to recover them.
-It uses mean per-layer
-binary similarity probabilities for localization and binary CLS logits for image
-scores. It does not reproduce all upstream reporting or multi-type metrics;
-the model also exposes dense `type_probabilities` for a typed evaluator. Compare
-both baseline and spectral models through this same evaluator. Changing the
-candidate vocabulary changes the averaged abnormal text anchor, so hold it fixed
-when comparing experiments.
+Binary inference follows `DAPO/test.py`: localization sums the individual defect
+probabilities after multi-class softmax and bilinear upsampling, then sums over
+feature layers. Image scores use binary CLS logits against normal and the
+normalized mean abnormal text anchor. This applies to baseline, spectral, and
+spectral + region checkpoints without retraining. Training and model readouts are
+unchanged. Reports identify the protocol, vocabulary source, checkpoint, saved
+epoch, data root and per-product sample counts. Older reports used a different
+pixel score and the training vocabulary; re-evaluate weights for comparisons.
+
+Multi-type results use product-specific softmax over normal and the relevant
+defect anchors **before** upsampling, then sum over layers. They report per-defect
+one-vs-rest AUROC/AP and argmax F1; each product's AP includes normal in its class
+macro average, and dataset macro metrics weight products equally. F1 follows
+upstream sklearn macro averaging over labels present in truth or predictions.
+An absent class has AP zero; undefined AUROC is null and excluded from the AUROC
+mean. This differs from binary positive-class AP and threshold-optimized F1-max.
+Binary pixel AUROC/AUPRO correspond to the paper's binary table; multi-type macro
+AUROC/AP/F1 correspond to its multi-type table.
+
+JSON results appear under `binary` and `multi_type`. Top-level `classes` and
+`macro` remain aliases for the binary results for existing comparison scripts.
+The multi-type vocabularies and source label aliases are recorded in
+`clip_ad/dapo_multitype.json` and checked against the vendored evaluator by tests.
+Supported multi-type datasets are MVTec, VisA, MPDD, MAD-Real, MAD-Sim and Real-IAD.
+Use `--tasks binary` for MVTec LOCO, which has no upstream multi-type mapping.
+Unmapped anomalous labels fail before model loading. Like upstream, the current
+dataset reader assigns the sample's defect type to its binary mask; it does not
+recover distinct types inside a combined mask from a multi-defect image.
+
+Dense multi-type predictions use temporary disk files, cleaned up after the run.
+Use `--scratch-dir /path/to/scratch` to select a filesystem with sufficient free
+space (approximately `N * H * W * (4 * C + 1)` bytes, summed over products).
+Use the same evaluator and target vocabulary for all model variants. Custom
+binary names change both binary pixel and image predictions.
 
 The spectral path uses grayscale, mean-centered Hann windows, float32 FFT log
 magnitudes, radial averaging and a shared MLP. Windows align to the square patch
@@ -234,5 +266,5 @@ a pixel. Standard OpenAI CLIP image normalization is assumed. Radial descriptors
 discard phase and orientation. The CLS path is unchanged, although joint training
 can indirectly affect its learned prompts.
 
-Local validation covers syntax and source integration only: PyTorch is not installed
-locally. Numerical tests and end-to-end baseline equivalence must run on the server.
+Numerical component and evaluation tests can run on CPU without CLIP weights.
+Full checkpoint/dataset reproduction still requires the server environment.

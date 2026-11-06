@@ -1,4 +1,4 @@
-"""Binary evaluation metrics independent of PyTorch and model inference."""
+"""Binary and multi-type metrics independent of PyTorch and model inference."""
 
 import numpy as np
 from sklearn.metrics import auc, average_precision_score, precision_recall_curve, roc_auc_score
@@ -23,6 +23,45 @@ def binary_metrics(truth, scores):
     return dict(auroc=float(roc_auc_score(truth, scores)),
                 ap=float(average_precision_score(truth, scores)),
                 f1_max=float(f1.max()))
+
+
+def multitype_metrics(truth, scores, labels):
+    """One-vs-rest metrics, including normal, matching DAPO's typed evaluator.
+
+    Scores are channel-last [images, height, width, classes]. AP averages every
+    supplied class; F1 follows sklearn's macro over labels in truth or argmax
+    predictions, as upstream does. Undefined per-class AUROCs are null and
+    excluded from the AUROC mean instead of crashing the evaluation.
+    """
+    truth, scores = np.asarray(truth), np.asarray(scores)
+    if scores.shape != (*truth.shape, len(labels)) or not labels:
+        raise ValueError('Typed scores must match masks and the supplied class names')
+    if not np.issubdtype(truth.dtype, np.integer) or truth.size == 0:
+        raise ValueError('Typed masks must contain integer class IDs and be nonempty')
+    if truth.min() < 0 or truth.max() >= len(labels):
+        raise ValueError('Typed mask IDs must index the supplied class names')
+    truth, scores = truth.ravel(), scores.reshape(-1, len(labels))
+    predictions = scores.argmax(axis=1)
+    per_defect, f1_values = {}, []
+    for index, label in enumerate(labels):
+        positive, predicted = truth == index, predictions == index
+        values = scores[:, index]
+        if not np.isfinite(values).all():
+            raise ValueError('Typed scores must be finite')
+        support, predicted_count = int(positive.sum()), int(predicted.sum())
+        denominator = support + predicted_count
+        f1 = float(2 * np.count_nonzero(positive & predicted) / denominator) if denominator else 0.
+        if denominator:
+            f1_values.append(f1)
+        per_defect[label] = dict(
+            auroc=float(roc_auc_score(positive, values)) if 0 < support < truth.size else None,
+            ap=float(average_precision_score(positive, values)) if support else 0.,
+            f1=f1, support=support,
+        )
+    aucs = [value['auroc'] for value in per_defect.values() if value['auroc'] is not None]
+    return dict(auroc=float(np.mean(aucs)) if aucs else None,
+                ap=float(np.mean([value['ap'] for value in per_defect.values()])),
+                f1=float(np.mean(f1_values))), per_defect
 
 
 def pixel_aupro(masks, maps, max_steps=200, fpr_limit=0.3):

@@ -1,0 +1,791 @@
+{
+  "mvtec": {
+    "defect_names": [
+      "bent",
+      "broken",
+      "color",
+      "combined",
+      "contamination",
+      "crack",
+      "cut",
+      "fabric",
+      "faulty imprint",
+      "glue",
+      "hole",
+      "missing",
+      "poke",
+      "rough",
+      "scratch",
+      "squeeze",
+      "thread",
+      "liquid",
+      "misplaced",
+      "damaged"
+    ],
+    "products": {
+      "bottle": [
+        "good",
+        "broken",
+        "contamination"
+      ],
+      "cable": [
+        "good",
+        "bent",
+        "misplaced",
+        "combined",
+        "cut",
+        "missing",
+        "poke"
+      ],
+      "capsule": [
+        "good",
+        "crack",
+        "faulty imprint",
+        "poke",
+        "scratch",
+        "squeeze"
+      ],
+      "carpet": [
+        "good",
+        "color",
+        "cut",
+        "hole",
+        "contamination",
+        "thread"
+      ],
+      "grid": [
+        "good",
+        "bent",
+        "broken",
+        "glue",
+        "contamination",
+        "thread"
+      ],
+      "hazelnut": [
+        "good",
+        "crack",
+        "cut",
+        "hole",
+        "faulty imprint"
+      ],
+      "leather": [
+        "good",
+        "color",
+        "cut",
+        "misplaced",
+        "glue",
+        "poke"
+      ],
+      "metal_nut": [
+        "good",
+        "bent",
+        "color",
+        "misplaced",
+        "scratch"
+      ],
+      "pill": [
+        "good",
+        "color",
+        "combined",
+        "contamination",
+        "crack",
+        "faulty imprint",
+        "damaged",
+        "scratch"
+      ],
+      "screw": [
+        "good",
+        "fabric",
+        "scratch",
+        "thread"
+      ],
+      "tile": [
+        "good",
+        "crack",
+        "glue",
+        "damaged",
+        "liquid",
+        "rough"
+      ],
+      "toothbrush": [
+        "good",
+        "damaged"
+      ],
+      "transistor": [
+        "good",
+        "bent",
+        "cut",
+        "damaged",
+        "misplaced"
+      ],
+      "wood": [
+        "good",
+        "color",
+        "combined",
+        "hole",
+        "liquid",
+        "scratch"
+      ],
+      "zipper": [
+        "good",
+        "broken",
+        "combined",
+        "fabric",
+        "rough",
+        "misplaced",
+        "squeeze"
+      ]
+    },
+    "label_aliases": {
+      "good": "good",
+      "bent": "bent",
+      "bent_lead": "bent",
+      "bent_wire": "bent",
+      "broken": "broken",
+      "broken_large": "broken",
+      "broken_small": "broken",
+      "broken_teeth": "broken",
+      "color": "color",
+      "combined": "combined",
+      "contamination": "contamination",
+      "metal_contamination": "contamination",
+      "crack": "crack",
+      "cut": "cut",
+      "cut_inner_insulation": "cut",
+      "cut_lead": "cut",
+      "cut_outer_insulation": "cut",
+      "fabric": "fabric",
+      "manipulated_front": "fabric",
+      "fabric_border": "fabric",
+      "fabric_interior": "fabric",
+      "faulty_imprint": "faulty imprint",
+      "print": "faulty imprint",
+      "glue": "glue",
+      "glue_strip": "glue",
+      "hole": "hole",
+      "missing": "missing",
+      "missing_wire": "missing",
+      "missing_cable": "missing",
+      "poke": "poke",
+      "poke_insulation": "poke",
+      "rough": "rough",
+      "scratch": "scratch",
+      "scratch_head": "scratch",
+      "scratch_neck": "scratch",
+      "squeeze": "squeeze",
+      "squeezed_teeth": "squeeze",
+      "thread": "thread",
+      "thread_side": "thread",
+      "thread_top": "thread",
+      "liquid": "liquid",
+      "oil": "liquid",
+      "misplaced": "misplaced",
+      "cable_swap": "misplaced",
+      "flip": "misplaced",
+      "fold": "misplaced",
+      "split_teeth": "misplaced",
+      "damaged_case": "damaged",
+      "defective": "damaged",
+      "gray_stroke": "damaged",
+      "pill_type": "damaged"
+    }
+  },
+  "visa": {
+    "defect_names": [
+      "damage",
+      "scratch",
+      "breakage",
+      "burnt",
+      "weird wick",
+      "stuck",
+      "crack",
+      "wrong place",
+      "partical",
+      "bubble",
+      "melded",
+      "hole",
+      "melt",
+      "bent",
+      "spot",
+      "extra",
+      "chip",
+      "missing"
+    ],
+    "products": {
+      "candle": [
+        "normal",
+        "damage",
+        "weird wick",
+        "partical",
+        "melded",
+        "spot",
+        "extra",
+        "missing"
+      ],
+      "capsules": [
+        "normal",
+        "bubble"
+      ],
+      "cashew": [
+        "normal",
+        "scratch",
+        "breakage",
+        "burnt",
+        "stuck",
+        "hole",
+        "spot"
+      ],
+      "chewinggum": [
+        "normal",
+        "scratch",
+        "spot",
+        "missing"
+      ],
+      "fryum": [
+        "normal",
+        "scratch",
+        "breakage",
+        "burnt",
+        "stuck",
+        "spot"
+      ],
+      "macaroni1": [
+        "normal",
+        "scratch",
+        "crack",
+        "spot",
+        "chip"
+      ],
+      "macaroni2": [
+        "normal",
+        "scratch",
+        "breakage",
+        "crack",
+        "spot",
+        "chip"
+      ],
+      "pcb1": [
+        "normal",
+        "scratch",
+        "melt",
+        "bent",
+        "missing"
+      ],
+      "pcb2": [
+        "normal",
+        "scratch",
+        "melt",
+        "bent",
+        "missing"
+      ],
+      "pcb3": [
+        "normal",
+        "scratch",
+        "melt",
+        "bent",
+        "missing"
+      ],
+      "pcb4": [
+        "normal",
+        "scratch",
+        "damage",
+        "extra",
+        "burnt",
+        "missing",
+        "wrong place"
+      ],
+      "pipe_fryum": [
+        "normal",
+        "scratch",
+        "breakage",
+        "burnt",
+        "stuck",
+        "spot"
+      ]
+    },
+    "label_aliases": {
+      "normal": "normal",
+      "damage": "damage",
+      "scratch": "scratch",
+      "breakage": "breakage",
+      "burnt": "burnt",
+      "weird wick": "weird wick",
+      "stuck": "stuck",
+      "crack": "crack",
+      "wrong place": "wrong place",
+      "partical": "partical",
+      "bubble": "bubble",
+      "melded": "melded",
+      "hole": "hole",
+      "melt": "melt",
+      "bent": "bent",
+      "spot": "spot",
+      "extra": "extra",
+      "chip": "chip",
+      "missing": "missing"
+    }
+  },
+  "mpdd": {
+    "defect_names": [
+      "hole",
+      "scratch",
+      "bent",
+      "mismatch",
+      "defective painting",
+      "rust",
+      "flattening"
+    ],
+    "products": {
+      "bracket_black": [
+        "good",
+        "hole",
+        "scratch"
+      ],
+      "bracket_brown": [
+        "good",
+        "mismatch",
+        "bent"
+      ],
+      "bracket_white": [
+        "good",
+        "defective painting",
+        "scratch"
+      ],
+      "connector": [
+        "good",
+        "mismatch"
+      ],
+      "metal_plate": [
+        "good",
+        "rust",
+        "scratch"
+      ],
+      "tubes": [
+        "good",
+        "flattening"
+      ]
+    },
+    "label_aliases": {
+      "good": "good",
+      "hole": "hole",
+      "scratches": "scratch",
+      "bend_and_parts_mismatch": "bent",
+      "parts_mismatch": "mismatch",
+      "defective_painting": "defective painting",
+      "major_rust": "rust",
+      "total_rust": "rust",
+      "flattening": "flattening"
+    }
+  },
+  "mad-sim": {
+    "defect_names": [
+      "Stains",
+      "Missing",
+      "Burrs"
+    ],
+    "products": {
+      "Gorilla": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Unicorn": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Mallard": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Turtle": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Whale": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Bird": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Owl": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Sabertooth": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Swan": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Sheep": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Pig": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Zalika": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Pheonix": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Elephant": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Parrot": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Cat": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Scorpion": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Obesobeso": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Bear": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ],
+      "Puppy": [
+        "good",
+        "Stains",
+        "Burrs",
+        "Missing"
+      ]
+    },
+    "label_aliases": {
+      "good": "good",
+      "Stains": "Stains",
+      "Missing": "Missing",
+      "Burrs": "Burrs"
+    }
+  },
+  "mad-real": {
+    "defect_names": [
+      "Stains",
+      "Missing"
+    ],
+    "products": {
+      "Bear": [
+        "good",
+        "Stains"
+      ],
+      "Bird": [
+        "good",
+        "Missing"
+      ],
+      "Elephant": [
+        "good",
+        "Missing"
+      ],
+      "Parrot": [
+        "good",
+        "Missing"
+      ],
+      "Pig": [
+        "good",
+        "Missing"
+      ],
+      "Puppy": [
+        "good",
+        "Stains"
+      ],
+      "Scorpion": [
+        "good",
+        "Missing"
+      ],
+      "Turtle": [
+        "good",
+        "Stains"
+      ],
+      "Unicorn": [
+        "good",
+        "Missing"
+      ],
+      "Whale": [
+        "good",
+        "Stains"
+      ]
+    },
+    "label_aliases": {
+      "good": "good",
+      "Stains": "Stains",
+      "Missing": "Missing"
+    }
+  },
+  "real-iad": {
+    "defect_names": [
+      "pit",
+      "deformation",
+      "abrasion",
+      "scratch",
+      "damage",
+      "missing",
+      "foreign",
+      "contamination"
+    ],
+    "products": {
+      "switch": [
+        "good",
+        "missing",
+        "contamination",
+        "scratch"
+      ],
+      "eraser": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "woodstick": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "zipper": [
+        "good",
+        "contamination",
+        "deformation",
+        "missing",
+        "damage"
+      ],
+      "fire_hood": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "pcb": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "foreign"
+      ],
+      "toothbrush": [
+        "good",
+        "abrasion",
+        "contamination",
+        "missing"
+      ],
+      "plastic_nut": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "wooden_beads": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "transistor1": [
+        "good",
+        "missing",
+        "contamination",
+        "deformation"
+      ],
+      "bottle_cap": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "u_block": [
+        "good",
+        "abrasion",
+        "contamination",
+        "scratch",
+        "missing"
+      ],
+      "sim_card_set": [
+        "good",
+        "abrasion",
+        "contamination",
+        "scratch"
+      ],
+      "end_cap": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "damage"
+      ],
+      "usb": [
+        "good",
+        "contamination",
+        "deformation",
+        "scratch",
+        "missing"
+      ],
+      "regulator": [
+        "good",
+        "missing",
+        "scratch"
+      ],
+      "plastic_plug": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "audiojack": [
+        "good",
+        "contamination",
+        "deformation",
+        "scratch",
+        "missing"
+      ],
+      "mint": [
+        "good",
+        "missing",
+        "contamination",
+        "foreign"
+      ],
+      "toy_brick": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "toy": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "rolled_strip_base": [
+        "good",
+        "pit",
+        "missing",
+        "contamination"
+      ],
+      "terminalblock": [
+        "good",
+        "pit",
+        "missing",
+        "contamination"
+      ],
+      "mounts": [
+        "good",
+        "missing",
+        "contamination",
+        "pit"
+      ],
+      "button_battery": [
+        "good",
+        "abrasion",
+        "contamination",
+        "scratch",
+        "pit"
+      ],
+      "porcelain_doll": [
+        "good",
+        "abrasion",
+        "contamination",
+        "scratch"
+      ],
+      "phone_battery": [
+        "good",
+        "contamination",
+        "scratch",
+        "damage",
+        "pit"
+      ],
+      "usb_adaptor": [
+        "good",
+        "abrasion",
+        "contamination",
+        "scratch",
+        "pit"
+      ],
+      "vcpill": [
+        "good",
+        "contamination",
+        "scratch",
+        "missing",
+        "pit"
+      ],
+      "tape": [
+        "good",
+        "missing",
+        "contamination",
+        "damage"
+      ]
+    },
+    "label_aliases": {
+      "good": "good",
+      "pit": "pit",
+      "deformation": "deformation",
+      "abrasion": "abrasion",
+      "scratch": "scratch",
+      "damage": "damage",
+      "missing": "missing",
+      "foreign": "foreign",
+      "contamination": "contamination"
+    }
+  }
+}
